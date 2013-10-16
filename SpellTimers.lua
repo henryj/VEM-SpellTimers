@@ -26,7 +26,11 @@
 --    * Share Alike. If you alter, transform, or build upon this work, you may distribute the resulting work only under the same or similar license to this one.
 --
 
-local Revision = ("$Revision: 96 $"):sub(12, -3)
+local Revision = ("$Revision: 100 $"):sub(12, -3)
+
+local IsInRaid = IsInRaid
+local IsInInstance = IsInInstance
+local select = select
 
 local default_bartext = "%spell: %player"
 local default_bartextwtarget = "%spell: %player on %target"	-- Added by Florin Patan
@@ -356,7 +360,7 @@ do
 			--Reset all CDs that are > 3 minutes EXCEPT shaman reincarnate
 		elseif settings.enabled and event == "COMBAT_LOG_EVENT_UNFILTERED" and spellEvents[select(2, ...)] then
 			-- first some exeptions (we don't want to see any skill around the world)
-			if settings.only_from_raid and not VEM:IsInRaid() then return end
+			if settings.only_from_raid and not IsInRaid() then return end
 			if not settings.active_in_pvp and (select(2, IsInInstance()) == "pvp") then return end
 
 			local fromplayer = select(5, ...)
@@ -383,13 +387,13 @@ do
 					local msg =  L.Local_CastMessage:format(bartext)
 					if not lastmsg or lastmsg ~= msg then
 						VEM:AddMsg(msg)
-						astmsg = msg
+						lastmsg = msg
 					end
 				end
 			end
 
 		elseif settings.enabled and event == "COMBAT_LOG_EVENT_UNFILTERED" and settings.show_portal and select(2, ...) == "SPELL_CREATE" then
-			if settings.only_from_raid and not VEM:IsInRaid() then return end
+			if settings.only_from_raid and not IsInRaid() then return end
 
 			local fromplayer = select(5, ...)
 			local toplayer = select(9, ...)		-- Added by Florin Patan
@@ -404,7 +408,11 @@ do
 					SpellBarIndex[bartext] = SpellBars:CreateBar(v.cooldown, bartext, icon, nil, true)
 
 					if settings.showlocal then
-						VEM:AddMsg( L.Local_CastMessage:format(bartext) )
+						local msg =  L.Local_CastMessage:format(bartext)
+						if not lastmsg or lastmsg ~= msg then
+							VEM:AddMsg(msg)
+							lastmsg = msg
+						end
 					end
 				end
 			end
